@@ -23,7 +23,7 @@
 #include <pthread.h>
 #elif defined(__linux__) && !defined(__ANDROID__)
 #include <syscall.h>
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) && !defined(__BIONIC__)
 #include <pthread_np.h>
 #elif defined(_WIN32)
 #include <windows.h>

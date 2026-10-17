@@ -33,7 +33,9 @@
 #include <string>
 #include <vector>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) && defined(__BIONIC__)
+#include <sys/auxv.h>
+#elif defined(__FreeBSD__)
 #include <sys/sysctl.h>
 #endif
 #if defined(__APPLE__)
@@ -515,6 +517,10 @@ std::string GetExecutablePath() {
   if (result == 0 || result == sizeof(path) - 1) return "";
   path[PATH_MAX - 1] = 0;
   return path;
+#elif defined(__FreeBSD__) && defined(__BIONIC__)
+  // bionic has no sysctl(3) API: the kernel gives the path in AT_EXECPATH.
+  const char* path = reinterpret_cast<const char*>(getauxval(AT_EXECPATH));
+  return path != nullptr ? path : "";
 #elif defined(__FreeBSD__)
   int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
   char path[PATH_MAX];
