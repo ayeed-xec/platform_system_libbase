@@ -33,6 +33,9 @@
 #include <string>
 #include <vector>
 
+#if defined(__FreeBSD__)
+#include <sys/sysctl.h>
+#endif
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
 #endif
@@ -511,6 +514,12 @@ std::string GetExecutablePath() {
   DWORD result = GetModuleFileName(NULL, path, sizeof(path) - 1);
   if (result == 0 || result == sizeof(path) - 1) return "";
   path[PATH_MAX - 1] = 0;
+  return path;
+#elif defined(__FreeBSD__)
+  int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+  char path[PATH_MAX];
+  size_t path_len = sizeof(path);
+  if (sysctl(mib, 4, path, &path_len, nullptr, 0) == -1) return "";
   return path;
 #elif defined(__EMSCRIPTEN__)
   abort();
